@@ -1,4 +1,10 @@
-﻿//! SSH SFTP Agent and RDP library boundary.
-//! Business source is migrated under src/ and is wired into this crate as
-//! host adapters are replaced with roc_desk-common interfaces.
+﻿//! SSH/SFTP：远程终端与文件传输
+//! 
+//! This crate is the stable integration boundary for the host and standalone shell.
 pub const TOOL_NAME: &str = "roc_desk-ssh";
+pub const TOOL_DESCRIPTION: &str = "SSH/SFTP：远程终端与文件传输";
+
+/// Returns the user-visible metadata used by the standalone shell and host launcher.
+pub fn tool_info() -> (&'static str, &'static str) {
+    (TOOL_NAME, TOOL_DESCRIPTION)
+}
