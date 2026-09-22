@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default permissions for the SSH/SFTP standalone window.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "opener:allow-open-path"
+  ]
+}

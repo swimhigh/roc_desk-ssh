@@ -17,6 +17,13 @@ enum ChannelCommand {
     Resize { rows: u16, cols: u16 },
 }
 
+/// 单引号安全转义：把 `'` 换成 `'\''`，包在单引号里传给远程 shell，防止
+/// `cwd` 里的 shell 特殊字符被解释执行（和宿主 `log::remote::shell_quote` 是
+/// 同一个函数，这里不为它单独拉一整个日志搜索模块依赖，直接内联一份）。
+fn shell_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', r"'\''"))
+}
+
 /// 一次性命令执行（`exec`）的超时上限——和 Windows Agent 侧 `exec.rs` 的默认
 /// 120s 超时对齐，让本地/SSH/Agent 三种执行目标的"命令不会无限期挂起"这个
 /// 保证一致。没有这个上限之前，`channel.wait()` 只在收到 `Eof`/`Close` 时才
@@ -134,7 +141,7 @@ impl SshSession {
 
         if let Some(cwd) = cwd {
             if !cwd.is_empty() {
-                let cmd = format!("cd {}\n", crate::log::remote::shell_quote(cwd));
+                let cmd = format!("cd {}\n", shell_quote(cwd));
                 channel
                     .data(cmd.as_bytes())
                     .await

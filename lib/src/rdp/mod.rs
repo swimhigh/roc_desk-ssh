@@ -484,7 +484,7 @@ fn find_wfreerdp_exe() -> Result<PathBuf, AppError> {
 
 fn main_window_hwnd(app_handle: &AppHandle) -> Result<HWND, AppError> {
     app_handle
-        .get_window("main")
+        .get_webview_window("main")
         .ok_or_else(|| AppError::Internal("找不到主窗口".into()))?
         .hwnd()
         .map_err(|e| AppError::Internal(format!("获取主窗口句柄失败：{e}")))
@@ -492,7 +492,7 @@ fn main_window_hwnd(app_handle: &AppHandle) -> Result<HWND, AppError> {
 
 fn window_scale_factor(app_handle: &AppHandle) -> Result<f64, AppError> {
     app_handle
-        .get_window("main")
+        .get_webview_window("main")
         .ok_or_else(|| AppError::Internal("找不到主窗口".into()))?
         .scale_factor()
         .map_err(|e| AppError::Internal(format!("获取窗口缩放比例失败：{e}")))
