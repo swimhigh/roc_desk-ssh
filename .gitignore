@@ -4,3 +4,7 @@ Cargo.lock
 bin/
 
 src-web/node_modules/
+
+# 前端构建产物——standalone 的 `beforeBuildCommand`/CI 会重新生成，不应该跟源码
+# 一起提交（2026-09 曾误用 `git add -A` 把 standalone/dist/ 整个提交上去）。
+standalone/dist/
