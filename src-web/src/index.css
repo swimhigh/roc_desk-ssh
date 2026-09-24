@@ -1,13 +1,5 @@
+/* html/body/#root 的背景/字体/高度已经在 styles/components.css 末尾用 CSS 变量
+ * 定义（随主题切换），这里只留一个盒模型 reset。*/
 * {
   box-sizing: border-box;
-}
-html,
-body,
-#root {
-  margin: 0;
-  height: 100%;
-  background: #0b1220;
-}
-body {
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }

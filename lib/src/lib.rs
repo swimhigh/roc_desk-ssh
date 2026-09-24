@@ -1078,6 +1078,58 @@ pub mod cmd {
     }
 
     // -----------------------------------------------------------------------
+    // 本地文件系统（SFTP/Agent 双栏浏览器的"本地"一侧，DESIGN.md §3.3）
+    // -----------------------------------------------------------------------
+    //
+    // 前端 `SftpBrowser`/`AgentBrowser` 的本地面板是从宿主真实组件原样搬过来的
+    // （见 `docs/MULTI_REPO_SPLIT_PROGRESS.md` 2026-09-23 restoration pass），
+    // 它调用的 `local_*` 命令集合和 `roc_desk-explorer` 导出的是同一组命令名/
+    // 参数形状——两个工具的"本地文件系统"表面本质上是同一件事（都是
+    // `roc_desk_common::fsops::LocalFileOps` 的薄封装），这里没有反过来依赖
+    // `roc_desk-explorer` crate，是因为 `LocalFileOps`/`FileOps` 已经通过
+    // `crate::fsops` re-export 到这个 crate里了（上面 SFTP/Agent 的
+    // 本地<->远程互传就是靠它），加一层跨仓库依赖换不来任何这里已经没有的能力，
+    // 只会多背一个版本对齐负担。只实现双栏浏览器实际用到的四个：
+    // `local_list_dir`/`local_home_dir`/`local_is_dir`/`local_delete`——
+    // 重命名/复制/创建目录/预览等 Total Commander 式操作是资源管理器工具的
+    // 范畴，SFTP/Agent 双栏浏览器的本地侧右键菜单里没有这些项，不需要在这里
+    // 补齐。
+
+    #[tauri::command]
+    pub async fn local_list_dir(path: String) -> Result<Vec<FileEntry>, AppError> {
+        LocalFileOps.list_dir(&path).await
+    }
+
+    #[tauri::command]
+    pub fn local_home_dir() -> Result<String, AppError> {
+        std::env::var("USERPROFILE")
+            .or_else(|_| std::env::var("HOME"))
+            .map(|p| p.replace('\\', "/"))
+            .map_err(|_| AppError::Internal("无法定位用户主目录".into()))
+    }
+
+    #[tauri::command]
+    pub async fn local_is_dir(path: String) -> Result<bool, AppError> {
+        tokio::fs::metadata(&path)
+            .await
+            .map(|m| m.is_dir())
+            .map_err(|e| AppError::Internal(format!("无法读取 {path}：{e}")))
+    }
+
+    #[tauri::command]
+    pub async fn local_delete(path: String, is_dir: bool) -> Result<(), AppError> {
+        // 和 `roc_desk-explorer::cmd::local_delete` 一致：移入回收站而不是永久删除
+        // （host 原版行为），不是 `LocalFileOps::delete` 那个直接 unlink 的版本。
+        let _ = is_dir;
+        tokio::task::spawn_blocking(move || {
+            trash::delete(&path).map_err(|e| AppError::Internal(format!("移入回收站失败: {e}")))
+        })
+        .await
+        .map_err(|e| AppError::Internal(e.to_string()))??;
+        Ok(())
+    }
+
+    // -----------------------------------------------------------------------
     // 传输控制 / 传输日志
     // -----------------------------------------------------------------------
 
@@ -1166,6 +1218,10 @@ pub mod cmd {
             transfer_cancel,
             transfer_log_list,
             transfer_log_clear,
+            local_list_dir,
+            local_home_dir,
+            local_is_dir,
+            local_delete,
         ]
     }
 }

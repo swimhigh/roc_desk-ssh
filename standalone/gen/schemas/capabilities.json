@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Default permissions for the SSH/SFTP standalone window.","local":true,"windows":["main"],"permissions":["core:default","opener:default","opener:allow-open-path"]}}
+{"default":{"identifier":"default","description":"Default permissions for the SSH/SFTP standalone window.","local":true,"windows":["main"],"permissions":["core:default","core:event:default","opener:default","opener:allow-open-path"]}}

@@ -1,0 +1,382 @@
+/* 通用组件类，起点是 `roc_desk-common/packages/ui-core/src/styles/core.css`
+ * （宿主 components.css 提炼出的跨工具通用部分，只读参考实现，见
+ * `docs/MULTI_REPO_SPLIT_PROGRESS.md` 2026-09-23 restoration pass），再从宿主
+ * `src-web/src/styles/components.css`（~1800 行）里额外摘出这个工具真正用到的
+ * SSH/SFTP/RDP/Agent 专属规则（会话树/会话标签/多路执行/资源使用率状态栏/
+ * 表单/面包屑/断线遮罩等），跳过了 SQL 工作台/AI 助手专属的部分。依赖
+ * `theme.css` 里定义的 CSS 变量。 */
+
+/* === Button === */
+.btn {
+  height: 32px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.btn.sm { height: 24px; padding: 0 var(--space-3); font-size: var(--text-xs); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { opacity: 0.9; }
+.btn.ghost { border: 1px solid var(--border-default); color: var(--text-secondary); background: transparent; }
+.btn.ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn.ghost.active { background: var(--bg-selected); color: var(--accent); border-color: var(--accent); }
+.btn.success { background: var(--success); color: #000; }
+.btn.danger { background: var(--danger); color: #fff; }
+.btn.danger-strong { background: var(--danger); color: #fff; font-weight: 500; }
+.btn.weak { color: var(--text-disabled); font-size: var(--text-xs); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* === Dialog（ConfirmDialog 的基座） === */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.dialog {
+  min-width: 380px;
+  max-width: 480px;
+  background: var(--bg-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.dialog-title-bar {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.dialog-title-bar.info { color: var(--info); }
+.dialog-title-bar.warning { color: var(--warning); }
+.dialog-title-bar.danger { background: var(--danger); color: #fff; }
+.dialog-body {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.dialog-body .fingerprint-block {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-app);
+  border-radius: var(--radius-sm);
+  margin: var(--space-2) 0;
+  word-break: break-all;
+}
+.dialog-body .warning-text { color: var(--danger); font-weight: 500; }
+.dialog-actions {
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* === Toast === */
+.toast {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow);
+  max-width: 360px;
+  cursor: pointer;
+}
+.toast.success { background: rgba(63, 185, 80, 0.15); border: 1px solid var(--success); color: var(--success); }
+.toast.info { background: rgba(88, 166, 255, 0.15); border: 1px solid var(--info); color: var(--info); }
+.toast.error { background: rgba(229, 83, 75, 0.15); border: 1px solid var(--danger); color: var(--danger); }
+.toast-stack {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 2000;
+}
+
+/* === Context Menu（会话树右键菜单，参考 VS Code） === */
+.context-menu {
+  min-width: 180px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: 4px 0;
+  z-index: 2000;
+  font-size: var(--text-sm);
+}
+.context-menu-item { padding: 5px 14px; cursor: pointer; color: var(--text-primary); }
+.context-menu-item:hover { background: var(--bg-hover); }
+.context-menu-item.danger { color: var(--danger); }
+.context-menu-item.danger:hover { background: rgba(229, 83, 75, 0.1); }
+.context-menu-sep { height: 1px; background: var(--border-subtle); margin: 4px 0; }
+
+/* === Form（ConnectionForm/GroupDialog） === */
+.form { display: flex; flex-direction: column; gap: var(--space-3); }
+.form-row { display: flex; flex-direction: column; gap: 4px; }
+.form-row.split { flex-direction: row; gap: var(--space-2); }
+.form-row.split > * { flex: 1; }
+.form-label { font-size: var(--text-xs); color: var(--text-secondary); }
+.form-input, .form-select {
+  height: 30px;
+  padding: 0 var(--space-2);
+  background: var(--bg-app);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+}
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.form-input-group { display: flex; gap: var(--space-1); }
+.form-input-group .form-input { flex: 1; }
+.form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+
+/* === StatusDot === */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  display: inline-block;
+}
+.status-dot.connected { background: var(--success); }
+.status-dot.connecting { background: var(--warning); animation: pulse 1.5s infinite; }
+.status-dot.disconnected { background: var(--text-disabled); }
+.status-dot.error { background: var(--danger); }
+
+/* === 会话树（左侧面板） === */
+.project-tree {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-1) 0;
+  user-select: none;
+}
+.tree-item {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tree-item:hover { background: var(--bg-hover); }
+.tree-item.active { background: var(--bg-selected); }
+.tree-item .tree-icon { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-secondary); }
+.tree-item .tree-icon.is-dir { color: #dcb67a; }
+.tree-item .tree-name { overflow: hidden; text-overflow: ellipsis; }
+.tree-item .tree-status-dot { margin-left: auto; flex-shrink: 0; }
+
+.session-tree-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 4px var(--space-2); flex-shrink: 0; }
+.session-tree-toolbar span { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+.session-tree-add { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; color: var(--text-secondary); }
+.session-tree-add:hover { background: var(--bg-hover); color: var(--text-primary); }
+.session-tree-add svg { width: 14px; height: 14px; }
+.session-tree-footer { flex-shrink: 0; padding: 6px var(--space-2); font-size: 11px; color: var(--text-secondary); border-top: 1px solid var(--border-default); text-align: center; user-select: text; }
+
+/* === 工具栏图标按钮 === */
+.quick-tool-btn {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.quick-tool-btn svg { width: 16px; height: 16px; }
+.quick-tool-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.quick-tool-btn.active { background: var(--bg-selected); color: var(--accent); }
+.quick-tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.quick-tool-btn:disabled:hover { background: none; color: var(--text-secondary); }
+
+/* === 侧边栏/双栏分隔条拖拽手柄 === */
+.sidebar-resize-handle {
+  width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: var(--border-default);
+  position: relative;
+}
+.sidebar-resize-handle:hover, .sidebar-resize-handle:active { background: var(--accent); }
+
+/* SFTP/Agent 双栏浏览器的左右分隔条，规则和 .sidebar-resize-handle 完全一致。*/
+.sftp-pane-resize-handle {
+  width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: var(--border-default);
+  position: relative;
+}
+.sftp-pane-resize-handle:hover, .sftp-pane-resize-handle:active { background: var(--accent); }
+
+/* === 双栏文件浏览器（SFTP/Agent 共用） === */
+.sftp-toolbar {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+.sftp-filter-bar {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+.sftp-footer {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border-top: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.breadcrumb { display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-sm); color: var(--text-secondary); flex-wrap: wrap; }
+.breadcrumb .crumb { cursor: pointer; }
+.breadcrumb .crumb:hover { color: var(--accent); }
+.breadcrumb .crumb.current { color: var(--text-primary); }
+.breadcrumb .sep { color: var(--text-disabled); }
+
+.file-header, .file-row {
+  display: grid;
+  grid-template-columns: 2fr 100px 140px;
+  align-items: center;
+  height: var(--list-row-height);
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  gap: var(--space-2);
+}
+.file-header {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-default);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  background: var(--bg-app);
+}
+.file-row { color: var(--text-primary); cursor: pointer; }
+.file-row:hover { background: var(--bg-hover); }
+.file-row.selected { background: var(--bg-selected); }
+.file-row .file-icon { width: 15px; height: 15px; flex-shrink: 0; color: var(--text-secondary); }
+.file-row .file-icon.is-dir { color: #dcb67a; }
+.file-row .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row .file-size, .file-row .file-time { color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); }
+
+.dirty-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: var(--warning); }
+.editor-large-file-banner { flex-shrink: 0; padding: 6px 12px; font-size: 12px; color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border-default)); }
+
+/* === 底部状态/操作栏 === */
+.host-stats-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 26px;
+  padding: 0 var(--space-3);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-default);
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.host-stats-item { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.host-stats-item svg { width: 12px; height: 12px; flex-shrink: 0; }
+.host-stats-item strong { color: var(--text-primary); font-weight: 500; }
+.host-stats-item.ok strong { color: var(--success); }
+.host-stats-item.warn strong { color: var(--warning); }
+.host-stats-item.danger strong { color: var(--danger); }
+.host-stats-disks { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.host-stats-disk { display: flex; align-items: center; gap: 3px; }
+.host-stats-disk .mount { color: var(--text-disabled); }
+.host-stats-disk strong { color: var(--text-primary); font-weight: 500; }
+.host-stats-disk.ok strong { color: var(--success); }
+.host-stats-disk.warn strong { color: var(--warning); }
+.host-stats-disk.danger strong { color: var(--danger); }
+
+/* === 远程工具首页：会话标签 / 多路执行 === */
+.remote-tool-shell { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.remote-session-tabs { display: flex; align-items: center; flex-shrink: 0; height: 32px; background: var(--bg-surface); border-bottom: 1px solid var(--border-default); overflow-x: auto; }
+.remote-session-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.remote-session-tab svg { width: 13px; height: 13px; flex-shrink: 0; }
+.remote-session-tab:hover { color: var(--text-primary); }
+.remote-session-tab.active { background: var(--bg-app); color: var(--text-primary); }
+.remote-session-tab .remote-session-tab-close { width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center; border-radius: 3px; opacity: 0; }
+.remote-session-tab:hover .remote-session-tab-close { opacity: 1; }
+.remote-session-tab .remote-session-tab-close:hover { background: var(--bg-hover); }
+.remote-session-tab .remote-session-tab-close svg { width: 11px; height: 11px; }
+.remote-session-tab .tab-dot { margin-left: 4px; }
+.remote-session-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 13px; }
+
+.remote-session-subbar { display: flex; align-items: center; flex-shrink: 0; height: 28px; padding: 0 var(--space-2); gap: var(--space-1); background: var(--bg-surface); border-bottom: 1px solid var(--border-default); }
+.remote-session-subbar .quick-tool-btn { width: auto; padding: 0 8px; gap: 5px; font-size: 12px; }
+.remote-session-subbar .quick-tool-btn svg { width: 13px; height: 13px; }
+
+.multiexec-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); grid-auto-rows: minmax(220px, 1fr); gap: 1px; background: var(--border-default); overflow: auto; }
+.multiexec-cell { display: flex; flex-direction: column; overflow: hidden; background: var(--bg-app); min-height: 0; }
+.multiexec-cell-header { display: flex; align-items: center; gap: 6px; flex-shrink: 0; height: 26px; padding: 0 var(--space-2); background: var(--bg-surface); font-size: 12px; color: var(--text-secondary); }
+.multiexec-cell-header svg { width: 13px; height: 13px; flex-shrink: 0; }
+.multiexec-exclude { margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-disabled); cursor: pointer; white-space: nowrap; }
+
+/* === 断线重连遮罩（TerminalView） === */
+.terminal-disconnected-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 24px;
+  background: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.terminal-disconnected-overlay .btn { pointer-events: auto; display: flex; align-items: center; gap: 6px; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
