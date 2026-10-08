@@ -1,8 +1,9 @@
 {
-  "name": "roc_desk-ssh-web",
+  "name": "@roc_desk/tool-ssh",
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
