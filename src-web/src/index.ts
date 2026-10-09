@@ -17,6 +17,12 @@ export { connectionService } from "./services/connectionService";
 export { connectionGroupService } from "./services/connectionGroupService";
 export { sftpService } from "./services/sftpService";
 export { agentService } from "./services/agentService";
+export { sshService } from "./services/sshService";
+
+/** Interactive terminal (SSH/Agent only -- no "local" kind, see the
+ * component's own doc comment) for a remote workspace's "终端" tab. */
+export { TerminalView } from "./components/Terminal/TerminalView";
+export type { TerminalTab } from "./components/Terminal/TerminalView";
 
 /**
  * Host-key / Agent-cert TOFU trust prompts -- mount `<HostKeyPromptHost/>`
