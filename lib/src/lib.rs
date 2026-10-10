@@ -261,11 +261,15 @@ pub mod cmd {
         cols: u16,
         cwd: Option<String>,
     ) -> Result<Uuid, AppError> {
-        let session = state
-            .ssh_pool
-            .get(profile_id)
-            .await
-            .ok_or_else(|| AppError::NotFound(format!("no active ssh session for {profile_id}")))?;
+        // 用 `get_or_connect` 而不是 `get`——2026-10 用户反馈：终端断线后点
+        // "重新连接"连不上，必须关掉整个工作区/SSH 窗口重开才行。根因是这里
+        // 原来直接从池里 `get()` 缓存的连接，断线后缓存里那条 `Arc<SshSession>`
+        // 没人会主动 evict，`get()` 只是原样交出这条死连接，`open_shell` 在死
+        // handle 上必然失败，"重新连接"等于白点；换成 `get_or_connect`
+        // 和 `agent_open_shell`（下面）、`ssh_connect` 保持一致，由它自己判活、
+        // 死了就清缓存重新握手（同款自愈逻辑见 `ssh::pool::SshConnectionPool::
+        // get_or_connect` 的文档注释）。
+        let session = state.ssh_pool.get_or_connect(profile_id).await?;
         session.open_shell(rows, cols, cwd.as_deref(), app_handle).await
     }
 
